@@ -1,12 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+using Byte = unsigned char;
+using Word = unsigned short;
 
+using u32 = unsigned int;
+
+struct Mem
+{
+	static constexpr u32 MAX_MEM = 1024 * 64;
+	Byte Data[];
+
+	void Initialise()
+	{
+		for (u32 i = 0; i < MAX_MEM; i++)
+		{
+			Data[i] = 0;
+		}
+	}
+};
 
 struct CPU
 {
-	using Byte = unsigned char;
-	using Word = unsigned short;
+	
 
 	Word PC; // program counter
 	Word SP; // stack pointer
@@ -21,11 +37,22 @@ struct CPU
 	Byte B : 1; // break flag
 	Byte V : 1; // overflow flag is set during arithmetic operations if the result has yeilded an invalid 2's complement result (adding positive numbers resulted with negative number 64+64 = -128)
 	Byte N : 1; // negative flag is set if the result of the last operation had bit 7 set to 1 
+
+	void Reset( Mem& memory )
+	{
+		PC = 0xFFFC; // execution address of cold reset from off state (reserved from $FFFC to $FFFD)
+		SP = 0x0100;
+		C = D = Z = I = B = V = N = 0;
+		A = X = Y = 0;
+		memory.Initialise();
+	}
 };
 
 
 int main()
 {
+	Mem mem;
 	CPU cpu;
+	cpu.Reset( mem );
 	return 0;
 }
